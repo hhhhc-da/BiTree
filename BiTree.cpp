@@ -145,7 +145,8 @@ void testBiTree(void)
         // tree.traceFunction();
         // /* 测试通过 */
 
-        tree.treeInsert(7, 20, NO_ANYNODE);
+        // tree.treeInsert(7, 15, NO_ANYNODE);
+        tree.treeInsert(8, 20, NO_ANYNODE);
         // tree.traceFunction();
 
         // // B树删除测试
@@ -194,19 +195,21 @@ void testBiTree(void)
         ////////////////////////////////////////////////////////////////////////////////////////
 
         // B树遍历算法2(标准库版)
-        // cout << "\n压栈前序遍历: " << endl;
-        // tree.treeForwardDisplay();
-        // cout << "\n标准库前序遍历: " << endl;
-        // tree.treeStdForwardDisplay();
-        // cout << "\n压栈中序遍历: " << endl;
-        // tree.treeMiddleDisplay();
-        // cout << "\n标准库中序遍历: " << endl;
-        // tree.treeStdMiddleDisplay();
+        cout << "\n压栈前序遍历: " << endl;
+        tree.treeForwardDisplay();
+        cout << "\n标准库前序遍历: " << endl;
+        tree.treeStdForwardDisplay();
+        cout << "\n压栈中序遍历: " << endl;
+        tree.treeMiddleDisplay();
+        cout << "\n标准库中序遍历: " << endl;
+        tree.treeStdMiddleDisplay();
         cout << "\n压栈后序遍历: " << endl;
         tree.treeBackwardDisplay();
         cout << "\n标准库后序遍历: " << endl;
         tree.treeStdBackwardDisplay();
-        /* 未测试 */
+        /* 测试通过 */
+
+        ////////////////////////////////////////////////////////////////////////////////////////
     }
     catch (runtime_error e)
     {
@@ -1237,7 +1240,7 @@ void BiTree<T>::treeStdMiddleDisplay(void)
                 continue;
             }
 
-            if (pT->right_node != nullptr && LoR[pT->pos] == 1)
+            if (pT->right_node != nullptr && LoR[pT->pos] <= 1)
             {
                 // 右节点当成左节点走，但是不压栈，直接输出
                 this->treePrint(pB);
@@ -1247,8 +1250,7 @@ void BiTree<T>::treeStdMiddleDisplay(void)
                 pB = pT->right_node;
                 continue;
             }
-
-            if (pT->right_node == nullptr || LoR[pT->pos] > 1)
+            else
             {
                 if (ctrl.size())
                 {
@@ -1377,7 +1379,7 @@ void BiTree<T>::treeStdBackwardDisplay(void)
                 continue;
             }
 
-            if (pT->right_node != nullptr && LoR[pT->pos] == 1)
+            if (pT->right_node != nullptr && LoR[pT->pos] <= 1)
             {
                 // 输出标识
                 ctrl.push(pB);
@@ -1385,8 +1387,7 @@ void BiTree<T>::treeStdBackwardDisplay(void)
                 pB = pT->right_node;
                 continue;
             }
-
-            if (pT->right_node == nullptr || LoR[pT->pos] > 1)
+            else
             {
                 if (ctrl.size())
                 {
