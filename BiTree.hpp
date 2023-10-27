@@ -275,6 +275,12 @@ public:
     void treeMiddleDisplay(void);
     /* 后序遍历函数(使用系统栈) */
     void treeBackwardDisplay(void);
+    /* 前序遍历函数(使用标准库) */
+    void treeStdForwardDisplay(void);
+    /* 中序遍历函数(使用标准库) */
+    void treeStdMiddleDisplay(void);
+    /* 后序遍历函数(使用标准库) */
+    void treeStdBackwardDisplay(void);
 
     /* 打印当前节点内容 */
     void treePrint(BiTreeNode<T> *pT);

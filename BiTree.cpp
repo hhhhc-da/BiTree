@@ -12,8 +12,11 @@ namespace
 
 int main(void)
 {
-    // // B树测试
+    // B树测试
     testBiTree();
+
+    // // 作业函数
+    // hwBiTree();
 
     cout << "程序执行结束!" << endl;
     // 消除 CMD 特性
@@ -40,6 +43,9 @@ void hwBiTree(void)
         /* (2) */
         cout << "\n中序遍历: \t" << endl;
         tree.treeMiddleDisplay();
+
+        system("pause");
+
         /* (3) */
         cout << "\n后序遍历: \t" << endl;
         tree.treeBackwardDisplay();
@@ -55,6 +61,8 @@ void hwBiTree(void)
         cout << "有效节点数: \t" << tree.getSize() << "\n"
              << "节点总数: \t" << tree.size() << endl
              << endl;
+
+        system("pause");
 
         // 前序数列直接存一个map对应，然后扔进来就行
         map<unsigned, unsigned> mT1{
@@ -134,10 +142,10 @@ void testBiTree(void)
         tree.treeInsert(4, 7, NO_ANYNODE);
         tree.treeInsert(5, 8, NO_ANYNODE);
         tree.treeInsert(6, 9, NO_ANYNODE);
-        tree.traceFunction();
-        /* 测试通过 */
+        // tree.traceFunction();
+        // /* 测试通过 */
 
-        // tree.treeInsert(7, 20, NO_ANYNODE);
+        tree.treeInsert(7, 20, NO_ANYNODE);
         // tree.traceFunction();
 
         // // B树删除测试
@@ -182,6 +190,23 @@ void testBiTree(void)
         // cout << "\n(迭代)前序遍历: " << endl;
         // tree.treeForwardDisplay();
         // /* 测试通过 */
+
+        ////////////////////////////////////////////////////////////////////////////////////////
+
+        // B树遍历算法2(标准库版)
+        // cout << "\n压栈前序遍历: " << endl;
+        // tree.treeForwardDisplay();
+        // cout << "\n标准库前序遍历: " << endl;
+        // tree.treeStdForwardDisplay();
+        // cout << "\n压栈中序遍历: " << endl;
+        // tree.treeMiddleDisplay();
+        // cout << "\n标准库中序遍历: " << endl;
+        // tree.treeStdMiddleDisplay();
+        cout << "\n压栈后序遍历: " << endl;
+        tree.treeBackwardDisplay();
+        cout << "\n标准库后序遍历: " << endl;
+        tree.treeStdBackwardDisplay();
+        /* 未测试 */
     }
     catch (runtime_error e)
     {
@@ -1009,6 +1034,393 @@ void BiTree<T>::treeBackwardDisplay(void)
     auto treeHead = mem[0];
 
     backOrder(treeHead);
+}
+
+/* 前序遍历函数(使用标准库) */
+template <typename T>
+void BiTree<T>::treeStdForwardDisplay(void)
+{
+    stack<BiTreeNode<T> *> ctrl;
+    BiTreeNode<T> *pB = mem[0];
+
+    // 根节点特殊处理
+    while (true)
+    {
+        auto tp = pB->type;
+        // 先输出
+        this->treePrint(pB);
+
+        // 检测分支
+        if (tp == LEFT_ONLY)
+        {
+            BiTreeLeft<T> *pT = reinterpret_cast<BiTreeLeft<T> *>(pB);
+
+            if (pT->left_node != nullptr)
+            {
+                // 左节点有的话直接走
+                pB = pT->left_node;
+                continue;
+            }
+            else
+            {
+                // 没有左节点就出栈
+                if (ctrl.size())
+                {
+                    pB = ctrl.top();
+                    ctrl.pop();
+                }
+                else
+                    break;
+                continue;
+            }
+        }
+        else if (tp == RIGHT_ONLY)
+        {
+            BiTreeRight<T> *pT = reinterpret_cast<BiTreeRight<T> *>(pB);
+            if (pT->right_node != nullptr)
+            {
+                // 右节点当成左节点走
+                pB = pT->right_node;
+                continue;
+            }
+            else
+            {
+                // 没有右节点就出栈
+                if (ctrl.size())
+                {
+                    pB = ctrl.top();
+                    ctrl.pop();
+                }
+                else
+                    break;
+                continue;
+            }
+        }
+        else if (tp == LEFT_RIGHT)
+        {
+            BiTree2Node<T> *pT = reinterpret_cast<BiTree2Node<T> *>(pB);
+            if (pT->right_node != nullptr)
+            {
+                // 把右节点都压入
+                ctrl.push(pT->right_node);
+            }
+
+            if (pT->left_node != nullptr)
+            {
+                // 有左节点就向下走
+                pB = pT->left_node;
+                continue;
+            }
+            else
+            {
+                // 没有左节点就出栈
+                if (ctrl.size())
+                {
+                    pB = ctrl.top();
+                    ctrl.pop();
+                }
+                else
+                    break;
+                continue;
+            }
+        }
+        else if (tp == NO_ANYNODE)
+        {
+            // 没有的话就切到下一个节点
+            if (ctrl.size())
+            {
+                pB = ctrl.top();
+                ctrl.pop();
+            }
+            else
+                break;
+            continue;
+        }
+    }
+}
+
+/* 中序遍历函数(使用标准库) */
+template <typename T>
+void BiTree<T>::treeStdMiddleDisplay(void)
+{
+    stack<BiTreeNode<T> *> ctrl;
+    BiTreeNode<T> *pB = mem[0];
+    // 左右遍历指示器
+    map<unsigned, size_t> LoR;
+
+    // 根节点特殊处理
+    while (true)
+    {
+        auto tp = pB->type;
+
+        // 检测分支
+        if (tp == LEFT_ONLY)
+        {
+            BiTreeLeft<T> *pT = reinterpret_cast<BiTreeLeft<T> *>(pB);
+
+            if (pT->left_node != nullptr && LoR[pT->pos] == 0)
+            {
+                // 第一次遍历到左节点，存在的话压栈直接走，并且做好记号
+                ctrl.push(pB);
+                LoR[pT->pos] = 1;
+                pB = pT->left_node;
+
+                continue;
+            }
+            else
+            {
+                // 第二次或者没有左节点就出栈，并且输出栈顶元素
+                if (ctrl.size())
+                {
+                    // 输出
+                    this->treePrint(pB);
+
+                    pB = ctrl.top();
+                    ctrl.pop();
+                }
+                else
+                {
+                    this->treePrint(pB);
+                    break;
+                }
+                continue;
+            }
+        }
+        else if (tp == RIGHT_ONLY)
+        {
+            BiTreeRight<T> *pT = reinterpret_cast<BiTreeRight<T> *>(pB);
+            if (pT->right_node != nullptr && LoR[pT->pos] == 0)
+            {
+                // 右节点当成左节点走，但是不压栈，直接输出
+                this->treePrint(pB);
+
+                // 输出标识
+                LoR[pT->pos] = 1;
+                pB = pT->right_node;
+
+                continue;
+            }
+            else
+            {
+                // 没有右节点就出栈
+                if (ctrl.size())
+                {
+                    if (LoR[pT->pos] == 0)
+                    {
+                        // 第一次遍历右侧节点时需要输出
+                        this->treePrint(pB);
+                    }
+
+                    // 第N次的都输出过了
+                    pB = ctrl.top();
+                    ctrl.pop();
+                }
+                else
+                {
+                    this->treePrint(pB);
+                    break;
+                }
+                continue;
+            }
+        }
+        else if (tp == LEFT_RIGHT)
+        {
+            BiTree2Node<T> *pT = reinterpret_cast<BiTree2Node<T> *>(pB);
+
+            if (pT->left_node != nullptr && LoR[pT->pos] == 0)
+            {
+                // 第一次遍历到左节点，存在的话压栈直接走，并且做好记号
+                ctrl.push(pB);
+                LoR[pT->pos] = 1;
+                pB = pT->left_node;
+
+                continue;
+            }
+
+            if (pT->right_node != nullptr && LoR[pT->pos] == 1)
+            {
+                // 右节点当成左节点走，但是不压栈，直接输出
+                this->treePrint(pB);
+
+                // 输出标识
+                LoR[pT->pos] = 2;
+                pB = pT->right_node;
+                continue;
+            }
+
+            if (pT->right_node == nullptr || LoR[pT->pos] > 1)
+            {
+                if (ctrl.size())
+                {
+                    this->treePrint(pB);
+
+                    pB = ctrl.top();
+                    ctrl.pop();
+                }
+                else
+                {
+                    this->treePrint(pB);
+                    break;
+                }
+                continue;
+            }
+        }
+        else if (tp == NO_ANYNODE)
+        {
+            // 没有的话就切到下一个节点
+            if (ctrl.size())
+            {
+                this->treePrint(pB);
+
+                pB = ctrl.top();
+                ctrl.pop();
+            }
+            else
+            {
+                this->treePrint(pB);
+                break;
+            }
+            continue;
+        }
+    }
+}
+
+/* 后序遍历函数(使用标准库) */
+template <typename T>
+void BiTree<T>::treeStdBackwardDisplay(void)
+{
+    stack<BiTreeNode<T> *> ctrl;
+    BiTreeNode<T> *pB = mem[0];
+    // 左右遍历指示器
+    map<unsigned, size_t> LoR;
+
+    // 根节点特殊处理
+    while (true)
+    {
+        auto tp = pB->type;
+
+        // 检测分支
+        if (tp == LEFT_ONLY)
+        {
+            BiTreeLeft<T> *pT = reinterpret_cast<BiTreeLeft<T> *>(pB);
+
+            if (pT->left_node != nullptr && LoR[pT->pos] == 0)
+            {
+                // 第一次遍历到左节点，存在的话压栈直接走，并且做好记号
+                ctrl.push(pB);
+                LoR[pT->pos] = 1;
+                pB = pT->left_node;
+
+                continue;
+            }
+            else
+            {
+                // 第二次或者没有左节点就出栈，并且输出栈顶元素
+                if (ctrl.size())
+                {
+                    // 输出
+                    this->treePrint(pB);
+
+                    pB = ctrl.top();
+                    ctrl.pop();
+                }
+                else
+                {
+                    this->treePrint(pB);
+                    break;
+                }
+                continue;
+            }
+        }
+        else if (tp == RIGHT_ONLY)
+        {
+            BiTreeRight<T> *pT = reinterpret_cast<BiTreeRight<T> *>(pB);
+            if (pT->right_node != nullptr && LoR[pT->pos] == 0)
+            {
+                // 输出标识
+                ctrl.push(pB);
+                LoR[pT->pos] = 1;
+                pB = pT->right_node;
+
+                continue;
+            }
+            else
+            {
+                // 没有右节点就出栈
+                if (ctrl.size())
+                {
+                    this->treePrint(pB);
+
+                    // 第N次的都输出过了
+                    pB = ctrl.top();
+                    ctrl.pop();
+                }
+                else
+                {
+                    this->treePrint(pB);
+                    break;
+                }
+                continue;
+            }
+        }
+        else if (tp == LEFT_RIGHT)
+        {
+            BiTree2Node<T> *pT = reinterpret_cast<BiTree2Node<T> *>(pB);
+
+            if (pT->left_node != nullptr && LoR[pT->pos] == 0)
+            {
+                // 第一次遍历到左节点，存在的话压栈直接走，并且做好记号
+                ctrl.push(pB);
+                LoR[pT->pos] = 1;
+                pB = pT->left_node;
+
+                continue;
+            }
+
+            if (pT->right_node != nullptr && LoR[pT->pos] == 1)
+            {
+                // 输出标识
+                ctrl.push(pB);
+                LoR[pT->pos] = 2;
+                pB = pT->right_node;
+                continue;
+            }
+
+            if (pT->right_node == nullptr || LoR[pT->pos] > 1)
+            {
+                if (ctrl.size())
+                {
+                    this->treePrint(pB);
+
+                    pB = ctrl.top();
+                    ctrl.pop();
+                }
+                else
+                {
+                    this->treePrint(pB);
+                    break;
+                }
+                continue;
+            }
+        }
+        else if (tp == NO_ANYNODE)
+        {
+            // 没有的话就切到下一个节点
+            if (ctrl.size())
+            {
+                this->treePrint(pB);
+
+                pB = ctrl.top();
+                ctrl.pop();
+            }
+            else
+            {
+                this->treePrint(pB);
+                break;
+            }
+            continue;
+        }
+    }
 }
 
 //////////////////////////////////////  拷贝控制  ////////////////////////////////////////////////////////////
